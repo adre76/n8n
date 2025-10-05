@@ -71,6 +71,8 @@ spec:
                 secretKeyRef:
                   name: n8n-secret
                   key: N8N_BASIC_AUTH_PASSWORD
+            - name: N8N_SECURE_COOKIE
+              value: "false"
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
