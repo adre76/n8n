@@ -1,6 +1,6 @@
 # Roteiro de Instalação do n8n no Rancher RKE2 com Kubernetes
 
-Este roteiro detalha a instalação do n8n como um serviço no seu cluster Rancher RKE2, utilizando Kubernetes, e configurando um Ingress para acesso local através do endereço `n8n.local`.
+Este roteiro detalha a instalação do n8n como um serviço no seu cluster Rancher RKE2, utilizando Kubernetes, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado.
 
 ## 1. Pré-requisitos
 
@@ -11,11 +11,19 @@ Antes de iniciar, certifique-se de que você possui os seguintes pré-requisitos
 *   Um Ingress Controller (como o NGINX Ingress Controller) instalado e em execução no seu cluster. Se você não tiver um, a instalação do NGINX Ingress Controller é um passo fundamental e deve ser realizada antes de prosseguir.
 *   A StorageClass `local-path` deve estar configurada e disponível no seu cluster RKE2 para persistência de dados local. O RKE2 geralmente vem com o `local-path-provisioner` pré-instalado, o que facilita o uso desta StorageClass.
 
-## 2. Criação dos Manifests Kubernetes
+## 2. Criação do Namespace
 
-Crie os seguintes arquivos YAML no seu ambiente local. Estes arquivos definirão o Deployment, Persistent Volume Claim (PVC), Service, Secret e Ingress para o n8n.
+É uma boa prática isolar aplicações em namespaces dedicados. Vamos criar um namespace chamado `n8n` para todos os recursos relacionados ao n8n.
 
-### 2.1. `n8n-deployment.yaml`
+```bash
+kubectl create namespace n8n
+```
+
+## 3. Criação dos Manifests Kubernetes
+
+Crie os seguintes arquivos YAML no seu ambiente local. Estes arquivos definirão o Deployment, Persistent Volume Claim (PVC), Service, Secret e Ingress para o n8n, todos dentro do namespace `n8n`.
+
+### 3.1. `n8n-deployment.yaml`
 
 Este arquivo define o Deployment do n8n, especificando a imagem, portas, variáveis de ambiente e montagem do volume persistente.
 
@@ -24,6 +32,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: n8n
+  namespace: n8n
   labels:
     app: n8n
 spec:
@@ -71,7 +80,7 @@ spec:
             claimName: n8n-pvc
 ```
 
-### 2.2. `n8n-pvc.yaml`
+### 3.2. `n8n-pvc.yaml`
 
 Define um Persistent Volume Claim para o n8n, garantindo que os dados do n8n (workflows, credenciais, etc.) sejam persistidos mesmo se o pod for reiniciado ou realocado. Este PVC utiliza a `storageClassName: local-path` para provisionamento de volume local.
 
@@ -80,6 +89,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: n8n-pvc
+  namespace: n8n
   labels:
     app: n8n
 spec:
@@ -91,7 +101,7 @@ spec:
       storage: 5Gi
 ```
 
-### 2.3. `n8n-service.yaml`
+### 3.3. `n8n-service.yaml`
 
 Cria um Service Kubernetes para expor o Deployment do n8n internamente no cluster.
 
@@ -100,6 +110,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: n8n
+  namespace: n8n
   labels:
     app: n8n
 spec:
@@ -111,7 +122,7 @@ spec:
       targetPort: 5678
 ```
 
-### 2.4. `n8n-secret.yaml`
+### 3.4. `n8n-secret.yaml`
 
 Este Secret armazenará as credenciais de autenticação básica para o n8n. **Você precisará substituir os placeholders pelos seus próprios valores codificados em Base64.**
 
@@ -129,13 +140,14 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: n8n-secret
+  namespace: n8n
 type: Opaque
 data:
   N8N_BASIC_AUTH_USER: <base64_encoded_username>
   N8N_BASIC_AUTH_PASSWORD: <base64_encoded_password>
 ```
 
-### 2.5. `n8n-ingress.yaml`
+### 3.5. `n8n-ingress.yaml`
 
 Configura um Ingress para rotear o tráfego externo para o serviço n8n, usando o hostname `n8n.local`.
 
@@ -144,6 +156,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: n8n-ingress
+  namespace: n8n
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: HTTP
     nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
@@ -162,48 +175,48 @@ spec:
                   number: 80
 ```
 
-## 3. Aplicação dos Manifests no Cluster
+## 4. Aplicação dos Manifests no Cluster
 
-Após criar e configurar os arquivos YAML, aplique-os no seu cluster Kubernetes na seguinte ordem:
+Após criar e configurar os arquivos YAML, aplique-os no seu cluster Kubernetes na seguinte ordem, especificando o namespace `n8n`:
 
 1.  **Secret**: Crie o Secret primeiro, pois o Deployment depende dele.
     ```bash
-    kubectl apply -f n8n-secret.yaml
+    kubectl apply -f n8n-secret.yaml -n n8n
     ```
 
 2.  **Persistent Volume Claim (PVC)**:
     ```bash
-    kubectl apply -f n8n-pvc.yaml
+    kubectl apply -f n8n-pvc.yaml -n n8n
     ```
 
 3.  **Deployment**: Implante o n8n.
     ```bash
-    kubectl apply -f n8n-deployment.yaml
+    kubectl apply -f n8n-deployment.yaml -n n8n
     ```
 
 4.  **Service**: Crie o Service para expor o n8n.
     ```bash
-    kubectl apply -f n8n-service.yaml
+    kubectl apply -f n8n-service.yaml -n n8n
     ```
 
 5.  **Ingress**: Configure o Ingress para acesso externo.
     ```bash
-    kubectl apply -f n8n-ingress.yaml
+    kubectl apply -f n8n-ingress.yaml -n n8n
     ```
 
-Verifique o status dos recursos criados:
+Verifique o status dos recursos criados no namespace `n8n`:
 
 ```bash
-kubectl get pods,svc,pvc,ingress
+kubectl get pods,svc,pvc,ingress -n n8n
 ```
 
 Certifique-se de que o pod do n8n está em estado `Running` e que o Ingress foi provisionado corretamente.
 
-## 4. Configuração de DNS Local
+## 5. Configuração de DNS Local
 
 Para acessar o n8n através de `n8n.local` na sua rede local, você precisará mapear este hostname para o endereço IP externo do seu Ingress Controller.
 
-1.  **Obtenha o IP do Ingress Controller**: O IP externo do seu Ingress Controller pode ser obtido com o seguinte comando:
+1.  **Obtenha o IP do Ingress Controller**: O IP externo do seu Ingress Controller pode ser obtido com o seguinte comando. Lembre-se de que o Ingress Controller geralmente não roda no namespace `n8n`, mas sim em um namespace próprio (comumente `ingress-nginx`).
     ```bash
     kubectl get services -n ingress-nginx
     # Ou o namespace onde seu Ingress Controller está instalado
@@ -223,7 +236,7 @@ Para acessar o n8n através de `n8n.local` na sua rede local, você precisará m
 
     Salve o arquivo.
 
-## 5. Acesso ao n8n
+## 6. Acesso ao n8n
 
 Após todas as configurações, você poderá acessar o n8n abrindo seu navegador e navegando para `http://n8n.local`.
 
