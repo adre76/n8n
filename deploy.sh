@@ -5,7 +5,7 @@
 NAMESPACE="n8n"
 
 # Cores para a saída do terminal
-GREEN=\'\033[0;32m\'
+GREEN='\033[0;32m\'
 NC=\'\033[0m\' # No Color
 
 # Função para verificar se um recurso foi criado
