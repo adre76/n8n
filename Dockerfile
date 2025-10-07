@@ -16,6 +16,7 @@ RUN apk add --no-cache \
 
 # Configurar Git para usar HTTPS em vez de SSH para GitHub
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
+RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # Instalar Puppeteer globalmente
 RUN npm install -g puppeteer@latest
@@ -24,4 +25,3 @@ RUN npm install -g puppeteer@latest
 RUN npm install -g n8n-nodes-puppeteer@latest
 
 USER node
-
