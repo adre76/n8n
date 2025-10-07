@@ -1,6 +1,6 @@
-# Roteiro de Instalação do n8n no Rancher RKE2 com Kubernetes
+# Roteiro de Instalação do n8n no Rancher RKE2 com Kubernetes com Chromium e Puppeteer
 
-Este roteiro detalha a instalação do n8n como um serviço no seu cluster Rancher RKE2, utilizando Kubernetes, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado.
+Este roteiro detalha a instalação do n8n como um serviço no seu cluster Rancher RKE2, utilizando Kubernetes, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador **Chromium** e o **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
 
 ## 1. Pré-requisitos
 
@@ -10,6 +10,8 @@ Antes de iniciar, certifique-se de que você possui os seguintes pré-requisitos
 *   `kubectl` configurado e autenticado para interagir com o seu cluster Kubernetes.
 *   Um Ingress Controller (como o NGINX Ingress Controller) instalado e em execução no seu cluster. Se você não tiver um, a instalação do NGINX Ingress Controller é um passo fundamental e deve ser realizada antes de prosseguir.
 *   A StorageClass `local-path` deve estar configurada e disponível no seu cluster RKE2 para persistência de dados local. O RKE2 geralmente vem com o `local-path-provisioner` pré-instalado, o que facilita o uso desta StorageClass.
+*   **Docker** instalado e configurado para construir e enviar imagens para um registro.
+*   Acesso a um **registro Docker** (e.g., Docker Hub, Google Container Registry, ou um registro privado) para armazenar a imagem personalizada do N8N.
 
 ## 2. Criação do Namespace
 
@@ -19,13 +21,71 @@ Antes de iniciar, certifique-se de que você possui os seguintes pré-requisitos
 kubectl create namespace n8n
 ```
 
-## 3. Criação dos Manifests Kubernetes
+## 3. Criação e Modificação dos Manifests Kubernetes
 
 Crie os seguintes arquivos YAML no seu ambiente local. Estes arquivos definirão o Deployment, Persistent Volume Claim (PVC), Service, Secret e Ingress para o n8n, todos dentro do namespace `n8n`.
 
-### 3.1. `n8n-deployment.yaml`
+### 3.1. `Dockerfile` (Novo)
 
-Este arquivo define o Deployment do n8n, especificando a imagem, portas, variáveis de ambiente e montagem do volume persistente.
+Este `Dockerfile` é responsável por construir a imagem personalizada do N8N que inclui o Chromium e o `n8n-nodes-puppeteer`. Salve este conteúdo como `Dockerfile` no diretório raiz do seu projeto `n8n`.
+
+```dockerfile
+FROM docker.n8n.io/n8nio/n8n:latest
+
+USER root
+
+# Instalar dependências do Chromium
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgbm1 \
+    libgdk-pixbuf2.0-0 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    xdg-utils \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+# Instalar Puppeteer globalmente
+RUN npm install -g puppeteer@latest
+
+# Instalar o community node n8n-nodes-puppeteer
+RUN npm install -g n8n-nodes-puppeteer@latest
+
+USER node
+```
+
+### 3.2. `n8n-deployment.yaml` (Modificado)
+
+Este arquivo define o Deployment do n8n. Ele foi modificado para usar a imagem Docker personalizada que você construirá e para habilitar o community node `n8n-nodes-puppeteer`.
+
+**Atenção**: Substitua `your-docker-registry/n8n-puppeteer:latest` pelo caminho da sua imagem no registro Docker.
 
 ```yaml
 apiVersion: apps/v1
@@ -47,10 +107,12 @@ spec:
     spec:
       containers:
         - name: n8n
-          image: n8nio/n8n
+          image: your-docker-registry/n8n-puppeteer:latest
           ports:
             - containerPort: 5678
           env:
+            - name: N8N_CUSTOM_EXTENSIONS
+              value: n8n-nodes-puppeteer
             - name: N8N_HOST
               value: "n8n.local"
             - name: WEBHOOK_URL
@@ -82,7 +144,7 @@ spec:
             claimName: n8n-pvc
 ```
 
-### 3.2. `n8n-pvc.yaml`
+### 3.3. `n8n-pvc.yaml`
 
 Define um Persistent Volume Claim para o n8n, garantindo que os dados do n8n (workflows, credenciais, etc.) sejam persistidos mesmo se o pod for reiniciado ou realocado. Este PVC utiliza a `storageClassName: local-path` para provisionamento de volume local.
 
@@ -103,7 +165,7 @@ spec:
       storage: 5Gi
 ```
 
-### 3.3. `n8n-service.yaml`
+### 3.4. `n8n-service.yaml`
 
 Cria um Service Kubernetes para expor o Deployment do n8n internamente no cluster.
 
@@ -124,7 +186,7 @@ spec:
       targetPort: 5678
 ```
 
-### 3.4. `n8n-secret.yaml`
+### 3.5. `n8n-secret.yaml`
 
 Este Secret armazenará as credenciais de autenticação básica para o n8n. **Você precisará substituir os placeholders pelos seus próprios valores codificados em Base64.**
 
@@ -149,7 +211,7 @@ data:
   N8N_BASIC_AUTH_PASSWORD: <base64_encoded_password>
 ```
 
-### 3.5. `n8n-ingress.yaml`
+### 3.6. `n8n-ingress.yaml`
 
 Configura um Ingress para rotear o tráfego externo para o serviço n8n, usando o hostname `n8n.local`.
 
@@ -177,9 +239,31 @@ spec:
                   number: 80
 ```
 
-## 4. Aplicação dos Manifests no Cluster
+## 4. Passos para Implantação
 
-Após criar e configurar os arquivos YAML, aplique-os no seu cluster Kubernetes na seguinte ordem, especificando o namespace `n8n`:
+Siga estes passos para implantar o N8N com Chromium e Puppeteer no seu cluster Kubernetes:
+
+### 4.1. Construir a Imagem Docker Personalizada
+
+Navegue até o diretório `n8n` (onde o `Dockerfile` está localizado) e execute o seguinte comando para construir a imagem Docker:
+
+```bash
+docker build -t your-docker-registry/n8n-puppeteer:latest .
+```
+
+Certifique-se de substituir `your-docker-registry` pelo caminho completo do seu registro Docker (por exemplo, `docker.io/seu-usuario` para Docker Hub, ou o endereço do seu registro privado).
+
+### 4.2. Enviar a Imagem para um Registro Docker
+
+Após a construção bem-sucedida da imagem, você precisará enviá-la para um registro Docker que seja acessível pelo seu cluster Kubernetes. Execute o comando:
+
+```bash
+docker push your-docker-registry/n8n-puppeteer:latest
+```
+
+### 4.3. Aplicar os Manifests no Cluster
+
+Com a imagem Docker disponível no seu registro, você pode aplicar as mudanças no seu cluster RKE2 usando o `kubectl` na seguinte ordem:
 
 1.  **Secret**: Crie o Secret primeiro, pois o Deployment depende dele.
     ```bash
@@ -244,6 +328,12 @@ Após todas as configurações, você poderá acessar o n8n abrindo seu navegado
 
 Você será solicitado a inserir as credenciais de autenticação básica que você configurou no `n8n-secret.yaml`.
 
+## Considerações Importantes
+
+*   **Recursos**: A inclusão do Chromium e Puppeteer pode aumentar significativamente o consumo de recursos (CPU, memória) do seu pod N8N. Monitore o uso de recursos após a implantação para garantir a estabilidade do cluster.
+*   **Segurança**: Certifique-se de que seu registro Docker esteja configurado corretamente e que as imagens sejam seguras. Mantenha suas credenciais de registro protegidas.
+*   **Atualizações**: Ao atualizar a versão do N8N, você precisará reconstruir sua imagem Docker personalizada para incluir as novas dependências e o community node, garantindo que tudo esteja atualizado e compatível.
+
 ## Referências
 
 *   [n8n-io/n8n-kubernetes-hosting](https://github.com/n8n-io/n8n-kubernetes-hosting)
@@ -251,4 +341,6 @@ Você será solicitado a inserir as credenciais de autenticação básica que vo
 *   [N8n Kubernetes installation using PVC](https://community.n8n.io/t/n8n-kubernetes-installation-using-pvc/10191)
 *   [Kubernetes Deployment for n8n: Best Practices and Easy Setup](https://medium.com/localtechid/easy-way-setup-n8n-on-kubernetes-environment-34ce17a2c051)
 *   [NGINX ingress controller for n8n - how to create it and deploy in Kubernetes](https://sysadmin.info.pl/en/blog/nginx-ingress-controller-for-n8n-how-to-create-it-and-deploy-in-kubernetes/)
+*   [abfarid/n8n-puppeteer - Docker Image](https://hub.docker.com/r/abfarid/n8n-puppeteer)
+*   [n8n-nodes-puppeteer - npm](https://www.npmjs.com/package/n8n-nodes-puppeteer)
 

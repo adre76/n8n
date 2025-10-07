@@ -17,10 +17,12 @@ spec:
     spec:
       containers:
         - name: n8n
-          image: n8nio/n8n
+          image: your-docker-registry/n8n-puppeteer:latest
           ports:
             - containerPort: 5678
           env:
+            - name: N8N_CUSTOM_EXTENSIONS
+              value: n8n-nodes-puppeteer
             - name: N8N_HOST
               value: "n8n.local"
             - name: WEBHOOK_URL
