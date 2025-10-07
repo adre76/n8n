@@ -25,7 +25,7 @@ kubectl create namespace n8n
 
 Crie os seguintes arquivos YAML no seu ambiente local. Estes arquivos definirão o Deployment, Persistent Volume Claim (PVC), Service, Secret e Ingress para o n8n, todos dentro do namespace `n8n`.
 
-### 3.1. `Dockerfile` (Novo)
+### 3.1. `Dockerfile`
 
 Este `Dockerfile` é responsável por construir a imagem personalizada do N8N que inclui o Chromium e o `n8n-nodes-puppeteer`. Salve este conteúdo como `Dockerfile` no diretório raiz do seu projeto `n8n`.
 
@@ -81,7 +81,7 @@ RUN npm install -g n8n-nodes-puppeteer@latest
 USER node
 ```
 
-### 3.2. `n8n-deployment.yaml` (Modificado)
+### 3.2. `n8n-deployment.yaml`
 
 Este arquivo define o Deployment do n8n. Ele foi modificado para usar a imagem Docker personalizada que você construirá e para habilitar o community node `n8n-nodes-puppeteer`.
 
