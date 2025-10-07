@@ -42,8 +42,12 @@ RUN apk add --no-cache \
     harfbuzz \
     ttf-freefont \
     udev \
+    git \
     --repository=http://dl-cdn.alpinelinux.org/alpine/v3.14/main && \
     rm -rf /var/cache/apk/*
+
+# Configurar Git para usar HTTPS em vez de SSH para GitHub
+RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
 
 # Instalar Puppeteer globalmente
 RUN npm install -g puppeteer@latest
