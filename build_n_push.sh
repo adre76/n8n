@@ -16,10 +16,6 @@ IMAGE_TAG="1.0"
 
 FULL_IMAGE_NAME="${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
 
-# --- Execução ---
-#echo "=> Fazendo login no Docker Hub..."
-#docker login #Login não necessário com Docker Desktop instalado
-
 echo
 echo -e "${YELLOW}=> Removendo projeto antigo no Kubernetes (se existir)...${NC}"
 kubectl delete all --all -n n8n
