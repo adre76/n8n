@@ -45,6 +45,11 @@ spec:
                   key: N8N_BASIC_AUTH_PASSWORD
             - name: N8N_SECURE_COOKIE
               value: "false"
+            - name: PUPPETEER_EXECUTABLE_PATH
+              value: /usr/bin/chromium-browser
+            - name: GENERIC_TIMEZONE
+              value: "America/Sao_Paulo"
+
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
