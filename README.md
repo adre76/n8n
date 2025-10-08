@@ -1,6 +1,6 @@
 # Roteiro de Instalação do n8n no Rancher RKE2 com Kubernetes com Chromium e Puppeteer
 
-Este roteiro detalha a instalação do n8n (1.114.4) como um serviço utilizando Kubernetes orquestrado por um Rancher RKE2, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador **Chromium** e o 🤖 **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
+Este roteiro detalha a instalação do n8n (1.114.4) como um serviço utilizando Kubernetes orquestrado por um Rancher RKE2, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador 🌏 **Chromium** e o 🤖 **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
 
 ## 📋 1. Pré-requisitos
 
@@ -242,7 +242,7 @@ docker build -t your-docker-registry/n8n-puppeteer:latest .
 
 Certifique-se de substituir `your-docker-registry` pelo caminho completo do seu registro Docker (por exemplo, `docker.io/seu-usuario` para Docker Hub, ou o endereço do seu registro privado).
 
-### 4.2. Enviar a Imagem para um Registro Docker
+### 4.2. 🚀 Enviar a Imagem para um Registro Docker
 
 Após a construção bem-sucedida da imagem, você precisará enviá-la para um registro Docker que seja acessível pelo seu cluster Kubernetes. Execute o comando:
 
@@ -250,7 +250,7 @@ Após a construção bem-sucedida da imagem, você precisará enviá-la para um 
 docker push your-docker-registry/n8n-puppeteer:latest
 ```
 
-### 4.3. 🚀 Aplicar os Manifests no Cluster
+### ☸️ 4.3. Aplicar os Manifests no Cluster
 
 Com a imagem Docker disponível no seu registro, você pode aplicar as mudanças no seu cluster RKE2 usando o `kubectl` na seguinte ordem:
 
@@ -313,27 +313,17 @@ Para acessar o n8n através de `n8n.local` na sua rede local, você precisará m
 
     Salve o arquivo.
 
-## 6. Acesso ao n8n
+## 🖥️ 6. Acesso ao n8n
 
 Após todas as configurações, você poderá acessar o n8n abrindo seu navegador e navegando para `http://n8n.local`.
 
 Você será solicitado a inserir as credenciais de autenticação básica que você configurou no `n8n-secret.yaml`.
 
-## Considerações Importantes
+## ⚠️ Considerações Importantes
 
 *   **Recursos**: A inclusão do Chromium e Puppeteer pode aumentar significativamente o consumo de recursos (CPU, memória) do seu pod N8N. Monitore o uso de recursos após a implantação para garantir a estabilidade do cluster.
 *   **Segurança**: Certifique-se de que seu registro Docker esteja configurado corretamente e que as imagens sejam seguras. Mantenha suas credenciais de registro protegidas.
 *   **Atualizações**: Ao atualizar a versão do N8N, você precisará reconstruir sua imagem Docker personalizada para incluir as novas dependências e o community node, garantindo que tudo esteja atualizado e compatível.
-
-## Referências
-
-*   [n8n-io/n8n-kubernetes-hosting](https://github.com/n8n-io/n8n-kubernetes-hosting)
-*   [How to deploy n8n in Kubernetes - k3s](https://sysadmin.info.pl/en/blog/how-to-deploy-n8n-in-kubernetes-k3s/)
-*   [N8n Kubernetes installation using PVC](https://community.n8n.io/t/n8n-kubernetes-installation-using-pvc/10191)
-*   [Kubernetes Deployment for n8n: Best Practices and Easy Setup](https://medium.com/localtechid/easy-way-setup-n8n-on-kubernetes-environment-34ce17a2c051)
-*   [NGINX ingress controller for n8n - how to create it and deploy in Kubernetes](https://sysadmin.info.pl/en/blog/nginx-ingress-controller-for-n8n-how-to-create-it-and-deploy-in-kubernetes/)
-*   [abfarid/n8n-puppeteer - Docker Image](https://hub.docker.com/r/abfarid/n8n-puppeteer)
-*   [n8n-nodes-puppeteer - npm](https://www.npmjs.com/package/n8n-nodes-puppeteer)
 
 ## 📜 Histórico de Versões (Changelog)
 
@@ -346,3 +336,13 @@ Você será solicitado a inserir as credenciais de autenticação básica que vo
 * Release inicial do ambiente customizado.
 * **Adicionado:** Suporte completo para automação web com a biblioteca Puppeteer e Chromium.
 * **Funcionalidade:** Estrutura base com arquivos de configuração para deploy em Kubernetes.
+
+## 🔖 Referências
+
+*   [n8n-io/n8n-kubernetes-hosting](https://github.com/n8n-io/n8n-kubernetes-hosting)
+*   [How to deploy n8n in Kubernetes - k3s](https://sysadmin.info.pl/en/blog/how-to-deploy-n8n-in-kubernetes-k3s/)
+*   [N8n Kubernetes installation using PVC](https://community.n8n.io/t/n8n-kubernetes-installation-using-pvc/10191)
+*   [Kubernetes Deployment for n8n: Best Practices and Easy Setup](https://medium.com/localtechid/easy-way-setup-n8n-on-kubernetes-environment-34ce17a2c051)
+*   [NGINX ingress controller for n8n - how to create it and deploy in Kubernetes](https://sysadmin.info.pl/en/blog/nginx-ingress-controller-for-n8n-how-to-create-it-and-deploy-in-kubernetes/)
+*   [abfarid/n8n-puppeteer - Docker Image](https://hub.docker.com/r/abfarid/n8n-puppeteer)
+*   [n8n-nodes-puppeteer - npm](https://www.npmjs.com/package/n8n-nodes-puppeteer)
