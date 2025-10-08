@@ -5,9 +5,6 @@ FROM docker.n8n.io/n8nio/n8n:1.114.4
 USER root
 
 # 3. Instalar todas as dependências do sistema de uma vez
-#    - Pacotes do Chromium para o Puppeteer
-#    - Git para dependências do npm
-#    - Python 3 e Pip para executar scripts
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -21,7 +18,8 @@ RUN apk add --no-cache \
     rm -rf /var/cache/apk/*
 
 # 4. Instalar a biblioteca cliente do n8n para Python
-RUN pip3 install n8n
+#    Usamos --break-system-packages para contornar a proteção PEP 668
+RUN pip3 install n8n --break-system-packages
 
 # 5. Configurar o Git para usar HTTPS em vez de SSH
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
