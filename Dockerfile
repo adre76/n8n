@@ -1,5 +1,5 @@
 # 1. Ponto de partida: Imagem oficial do n8n (1.114.4 - Latest em 07/10/2025)
-FROM docker.n8n.io/n8nio/n8n:1.114.4
+FROM docker.n8n.io/n8nio/n8n:latest
 
 # 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
