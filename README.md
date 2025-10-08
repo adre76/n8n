@@ -1,8 +1,8 @@
 # Roteiro de Instalação do n8n no Rancher RKE2 com Kubernetes com Chromium e Puppeteer
 
-Este roteiro detalha a instalação do n8n como um serviço no seu cluster Rancher RKE2, utilizando Kubernetes, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador **Chromium** e o **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
+Este roteiro detalha a instalação do n8n (1.114.4) como um serviço utilizando Kubernetes orquestrado por um Rancher RKE2, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador **Chromium** e o 🤖 **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
 
-## 1. Pré-requisitos
+## 📋 1. Pré-requisitos
 
 Antes de iniciar, certifique-se de que você possui os seguintes pré-requisitos:
 
@@ -30,11 +30,13 @@ Crie os seguintes arquivos YAML no seu ambiente local. Estes arquivos definirão
 Este `Dockerfile` é responsável por construir a imagem personalizada do N8N que inclui o Chromium e o `n8n-nodes-puppeteer`. Salve este conteúdo como `Dockerfile` no diretório raiz do seu projeto `n8n`.
 
 ```dockerfile
-FROM docker.n8n.io/n8nio/n8n:latest
+# 1. Ponto de partida: Imagem oficial do n8n (1.114.4 - Latest em 07/10/2025)
+FROM docker.n8n.io/n8nio/n8n:1.114.4
 
+# 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
 
-# Instalar dependências do Chromium usando apk (para Alpine Linux)
+# 3. Instalar todas as dependências do sistema de uma vez
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -43,18 +45,23 @@ RUN apk add --no-cache \
     ttf-freefont \
     udev \
     git \
-    --repository=http://dl-cdn.alpinelinux.org/alpine/v3.14/main && \
+    python3 \
+    py3-pip && \
     rm -rf /var/cache/apk/*
 
-# Configurar Git para usar HTTPS em vez de SSH para GitHub
+# 4. Instalar a biblioteca cliente do n8n para Python
+#    Usamos --break-system-packages para contornar a proteção PEP 668
+RUN pip3 install n8n --break-system-packages
+
+# 5. Configurar o Git para usar HTTPS em vez de SSH
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
+RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
-# Instalar Puppeteer globalmente
+# 6. Instalar o Puppeteer e o nó da comunidade n8n
 RUN npm install -g puppeteer@latest
-
-# Instalar o community node n8n-nodes-puppeteer
 RUN npm install -g n8n-nodes-puppeteer@latest
 
+# 7. Retornar ao usuário padrão 'node' para segurança e operação normal
 USER node
 ```
 
@@ -84,7 +91,7 @@ spec:
     spec:
       containers:
         - name: n8n
-          image: your-docker-registry/n8n-puppeteer:latest
+          image: andrepereira21/n8n-puppeteer:latest
           ports:
             - containerPort: 5678
           env:
@@ -112,6 +119,11 @@ spec:
                   key: N8N_BASIC_AUTH_PASSWORD
             - name: N8N_SECURE_COOKIE
               value: "false"
+            - name: PUPPETEER_EXECUTABLE_PATH
+              value: /usr/bin/chromium-browser
+            - name: GENERIC_TIMEZONE
+              value: "America/Sao_Paulo"
+
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
@@ -220,9 +232,9 @@ spec:
 
 Siga estes passos para implantar o N8N com Chromium e Puppeteer no seu cluster Kubernetes:
 
-### 4.1. Construir a Imagem Docker Personalizada
+### 4.1. 📦 Construir a Imagem Docker Personalizada
 
-Navegue até o diretório `n8n` (onde o `Dockerfile` está localizado) e execute o seguinte comando para construir a imagem Docker:
+Execute o script linux `build_n_push.sh` para construir e enviar a imagem de forma automatizada ou navegue até o diretório `n8n` (onde o `Dockerfile` está localizado) e execute o seguinte comando para construir a imagem Docker:
 
 ```bash
 docker build -t your-docker-registry/n8n-puppeteer:latest .
@@ -238,7 +250,7 @@ Após a construção bem-sucedida da imagem, você precisará enviá-la para um 
 docker push your-docker-registry/n8n-puppeteer:latest
 ```
 
-### 4.3. Aplicar os Manifests no Cluster
+### 4.3. 🚀 Aplicar os Manifests no Cluster
 
 Com a imagem Docker disponível no seu registro, você pode aplicar as mudanças no seu cluster RKE2 usando o `kubectl` na seguinte ordem:
 
@@ -275,7 +287,9 @@ kubectl get pods,svc,pvc,ingress -n n8n
 
 Certifique-se de que o pod do n8n está em estado `Running` e que o Ingress foi provisionado corretamente.
 
-## 5. Configuração de DNS Local
+Como alternativa, você pode executar o script linux `deploy.sh`
+
+## 🌐 5. Configuração de DNS Local
 
 Para acessar o n8n através de `n8n.local` na sua rede local, você precisará mapear este hostname para o endereço IP externo do seu Ingress Controller.
 
@@ -321,3 +335,14 @@ Você será solicitado a inserir as credenciais de autenticação básica que vo
 *   [abfarid/n8n-puppeteer - Docker Image](https://hub.docker.com/r/abfarid/n8n-puppeteer)
 *   [n8n-nodes-puppeteer - npm](https://www.npmjs.com/package/n8n-nodes-puppeteer)
 
+## 📜 Histórico de Versões (Changelog)
+
+### v2.0
+* **Adicionado:** 🐍 Inclusão do ambiente Python 3 completo.
+* **Adicionado:** 🐍 Biblioteca cliente `n8n` para Python, permitindo interações via API.
+* **Funcionalidade:** Capacidade de executar scripts `.py` diretamente de workflows através do nó `Execute Command`.
+
+### v1.0
+* Release inicial do ambiente customizado.
+* **Adicionado:** Suporte completo para automação web com a biblioteca Puppeteer e Chromium.
+* **Funcionalidade:** Estrutura base com arquivos de configuração para deploy em Kubernetes.
