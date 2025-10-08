@@ -1,8 +1,13 @@
-FROM docker.n8n.io/n8nio/n8n:1.114.3
+# 1. Ponto de partida: Imagem oficial do n8n (1.114.4 - Latest em 07/10/2025)
+FROM docker.n8n.io/n8nio/n8n:1.114.4
 
+# 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
 
-# Instalar dependências do Chromium usando apk (para Alpine Linux)
+# 3. Instalar todas as dependências do sistema de uma vez
+#    - Pacotes do Chromium para o Puppeteer
+#    - Git para dependências do npm
+#    - Python 3 e Pip para executar scripts
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -11,17 +16,20 @@ RUN apk add --no-cache \
     ttf-freefont \
     udev \
     git \
-    --repository=http://dl-cdn.alpinelinux.org/alpine/v3.14/main && \
+    python3 \
+    py3-pip && \
     rm -rf /var/cache/apk/*
 
-# Configurar Git para usar HTTPS em vez de SSH para GitHub
+# 4. Instalar a biblioteca cliente do n8n para Python
+RUN pip3 install n8n
+
+# 5. Configurar o Git para usar HTTPS em vez de SSH
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
 RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
-# Instalar Puppeteer globalmente
+# 6. Instalar o Puppeteer e o nó da comunidade n8n
 RUN npm install -g puppeteer@latest
-
-# Instalar o community node n8n-nodes-puppeteer
 RUN npm install -g n8n-nodes-puppeteer@latest
 
+# 7. Retornar ao usuário padrão 'node' para segurança e operação normal
 USER node

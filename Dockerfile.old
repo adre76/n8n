@@ -1,0 +1,27 @@
+FROM docker.n8n.io/n8nio/n8n:1.114.3
+
+USER root
+
+# Instalar dependências do Chromium usando apk (para Alpine Linux)
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
+    udev \
+    git \
+    --repository=http://dl-cdn.alpinelinux.org/alpine/v3.14/main && \
+    rm -rf /var/cache/apk/*
+
+# Configurar Git para usar HTTPS em vez de SSH para GitHub
+RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
+RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
+# Instalar Puppeteer globalmente
+RUN npm install -g puppeteer@latest
+
+# Instalar o community node n8n-nodes-puppeteer
+RUN npm install -g n8n-nodes-puppeteer@latest
+
+USER node
