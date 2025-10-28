@@ -1,10 +1,10 @@
-# 1. Ponto de partida: Imagem oficial do n8n (1.117.3 - Latest em 28/10/2025)
+# 1. Imagem oficial do n8n (1.117.3 - Latest em 28/10/2025)
 FROM docker.n8n.io/n8nio/n8n:1.117.3
 
 # 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
 
-# 3. Instalar todas as dependências do sistema de uma vez
+# 3. Instalar todas as dependências do sistema necessárias
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -25,7 +25,7 @@ RUN pip3 install n8n --break-system-packages
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
 RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
-# 6. Instalar o Puppeteer e o nó da comunidade n8n
+# 6. Instalar o Puppeteer e o node da comunidade n8n
 RUN npm install -g puppeteer@latest
 RUN npm install -g n8n-nodes-puppeteer@latest
 
