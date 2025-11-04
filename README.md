@@ -30,8 +30,8 @@ Crie os seguintes arquivos YAML no seu ambiente local. Estes arquivos definirão
 Este `Dockerfile` é responsável por construir a imagem personalizada do N8N que inclui o Chromium e o `n8n-nodes-puppeteer`. Salve este conteúdo como `Dockerfile` no diretório raiz do seu projeto `n8n`.
 
 ```dockerfile
-# 1. Ponto de partida: Imagem oficial do n8n (1.114.4 - Latest em 07/10/2025)
-FROM docker.n8n.io/n8nio/n8n:1.114.4
+# 1. Ponto de partida: Imagem oficial do n8n (1.119.0 - Latest em 03/11/2025)
+FROM docker.n8n.io/n8nio/n8n:1.119.0
 
 # 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
