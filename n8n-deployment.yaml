@@ -27,7 +27,7 @@ spec:
               value: "n8n.local"
             - name: WEBHOOK_URL
               #value: "http://n8n.local/"
-              value: "https://noncodified-maribeth-perceptually.ngrok-free.dev"
+              value: "https://andrepereira.tec.br"
             - name: N8N_PROTOCOL
               value: "http"
             - name: N8N_PORT
