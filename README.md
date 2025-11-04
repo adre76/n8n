@@ -1,6 +1,6 @@
 # Roteiro de Instalação do n8n no Rancher RKE2 com Kubernetes com Chromium e Puppeteer
 
-Este roteiro detalha a instalação do n8n (1.117.3) como um serviço utilizando Kubernetes orquestrado por um Rancher RKE2, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador 🌏 **Chromium** e o 🤖 **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
+Este roteiro detalha a instalação do n8n (1.119.0) como um serviço utilizando Kubernetes orquestrado por um Rancher RKE2, e configurando um Ingress para acesso local através do endereço `n8n.local` em um namespace dedicado. Além disso, este projeto foi modificado para incluir o navegador 🌏 **Chromium** e o 🤖 **community node `n8n-nodes-puppeteer`** em sua última versão, permitindo funcionalidades avançadas de automação de navegador.
 
 ## 📋 1. Pré-requisitos
 
