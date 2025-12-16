@@ -5,17 +5,17 @@ FROM docker.n8n.io/n8nio/n8n:2.1.0
 USER root
 
 # 3. Instalar todas as dependências do sistema necessárias
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     chromium \
-    libnss3 \
-    libfreetype6 \
-    libharfbuzz0b \
-    fonts-freefont-ttf \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
     udev \
     git \
     python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+    py3-pip \
+    && rm -rf /var/cache/apk/*
 
 # 4. Instalar a biblioteca cliente do n8n para Python
 #    Usamos --break-system-packages para contornar a proteção PEP 668
@@ -29,7 +29,7 @@ RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.co
 RUN npm install -g puppeteer@latest
 RUN npm install -g n8n-nodes-puppeteer@latest
 
-# 7. Defina a variável para o Puppeteer usar o Chromium instalado
+# 7. Configure as variáveis de ambiente para o Puppeteer usar o Chromium do sistema
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
