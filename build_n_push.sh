@@ -12,7 +12,7 @@ NC='\033[0m' # No Color (reseta a cor para o padrão)
 # Altere estas variáveis se quiser usar um nome de imagem ou usuário diferente
 DOCKERHUB_USERNAME="andrepereira21"
 IMAGE_NAME="n8n-puppeteer"
-IMAGE_TAG="2.1.0"
+IMAGE_TAG="2.0.2"
 
 FULL_IMAGE_NAME="${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
 
