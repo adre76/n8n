@@ -15,6 +15,8 @@ RUN apk add --no-cache \
     git \
     python3 \
     py3-pip \
+    curl \
+    bind-tools \
     && rm -rf /var/cache/apk/*
 
 # 4. Instalar a biblioteca cliente do n8n para Python

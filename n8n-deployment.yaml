@@ -21,6 +21,8 @@ spec:
           ports:
             - containerPort: 5678
           env:
+            - name: NODE_OPTIONS
+              value: "--dns-result-order=ipv4first"
             - name: N8N_PROXY_HOPS
               value: "2"
             - name: N8N_RUNNERS_ENABLED
