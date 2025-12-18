@@ -21,6 +21,8 @@ spec:
           ports:
             - containerPort: 5678
           env:
+            - name: N8N_PROXY_HOPS
+              value: "1"
             - name: N8N_RUNNERS_ENABLED
               value: "true"
             - name: N8N_RUNNERS_MODE
