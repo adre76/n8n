@@ -37,7 +37,7 @@ spec:
               #value: "http://n8n.local/"
               value: "https://andrepereira.tec.br"
             - name: N8N_PROTOCOL
-              value: "http"
+              value: "https"
             - name: N8N_PORT
               value: "5678"
             - name: N8N_BASIC_AUTH_ACTIVE
@@ -53,7 +53,7 @@ spec:
                   name: n8n-secret
                   key: N8N_BASIC_AUTH_PASSWORD
             - name: N8N_SECURE_COOKIE
-              value: "false"
+              value: "true"
             - name: PUPPETEER_EXECUTABLE_PATH
               value: /usr/bin/chromium-browser
             - name: GENERIC_TIMEZONE
