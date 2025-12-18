@@ -21,6 +21,12 @@ spec:
           ports:
             - containerPort: 5678
           env:
+            - name: N8N_RUNNERS_ENABLED
+              value: "true"
+            - name: N8N_RUNNERS_MODE
+              value: "external"
+            - name: N8N_TASK_BROKER_PORT
+              value: "5679"
             - name: N8N_CUSTOM_EXTENSIONS
               value: n8n-nodes-puppeteer
             - name: N8N_HOST
@@ -50,10 +56,36 @@ spec:
               value: /usr/bin/chromium-browser
             - name: GENERIC_TIMEZONE
               value: "America/Sao_Paulo"
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secret
+                  key: N8N_RUNNERS_AUTH_TOKEN
 
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
+        
+        - name: task-runner-python
+          image: n8nio/runners:2.0.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: N8N_TASK_BROKER_URL
+              value: "ws://127.0.0.1:5679" # Conecta no container principal via localhost
+            # Se você definir um segredo, adicione-o aqui também
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secret
+                  key: N8N_RUNNERS_AUTH_TOKEN
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
       volumes:
         - name: n8n-data
           persistentVolumeClaim:
