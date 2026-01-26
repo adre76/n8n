@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: n8n
-          image: andrepereira21/n8n-puppeteer:2.4.6
+          image: andrepereira21/n8n-puppeteer:2.4.6-alpine
           ports:
             - containerPort: 5678
           env:
