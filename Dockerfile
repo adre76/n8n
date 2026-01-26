@@ -1,40 +1,44 @@
-# Imagem oficial do n8n (2.4.6 - Latest em 23/01/2026)
+# 1. Imagem oficial do n8n (2.4.6 - Latest em 23/01/2026)
 FROM docker.n8n.io/n8nio/n8n:2.4.6
 
-# Permite instalar pacotes
+# 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
 
-# Instalar dependências do sistema para Chromium/Puppeteer
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 3. Instala apk-tools (removido da imagem base a partir do n8n 2.1.0)
+RUN wget -q https://dl-cdn.alpinelinux.org/alpine/v3.22/main/x86_64/apk-tools-2.14.8-r0.apk && \
+    tar -xzf apk-tools-2.14.8-r0.apk -C / && \
+    rm apk-tools-2.14.8-r0.apk
+
+# 4. Instalar todas as dependências do sistema necessárias
+RUN apk add --no-cache \
     chromium \
-    chromium-driver \
-    ca-certificates \
-    fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libcups2 \
-    libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libgtk-3-0 \
-    libnspr4 \
-    libnss3 \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    xdg-utils \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
     udev \
     git \
     python3 \
-    python3-pip \
+    py3-pip \
     curl \
-    dnsutils \
-    && rm -rf /var/lib/apt/lists/*
+    bind-tools \
+    && rm -rf /var/cache/apk/*
 
-# Defina o caminho do Chromium para Puppeteer
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+# 5. Instalar a biblioteca cliente do n8n para Python
+#    Usamos --break-system-packages para contornar a proteção PEP 668
+RUN pip3 install n8n --break-system-packages
 
-# Voltar para o usuário padrão do n8n
+# 6. Configurar o Git para usar HTTPS em vez de SSH
+RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
+RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
+# 7. Instalar o Puppeteer e o node da comunidade n8n
+RUN npm install -g puppeteer@latest
+RUN npm install -g n8n-nodes-puppeteer@latest
+
+# 8. Configure as variáveis de ambiente para o Puppeteer usar o Chromium do sistema
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# 9. Retornar ao usuário padrão 'node' para segurança e operação normal
 USER node
