@@ -1,39 +1,40 @@
-# 1. Imagem oficial do n8n (2.4.6 - Latest em 23/01/2026)
+# Imagem oficial do n8n (2.4.6 - Latest em 23/01/2026)
 FROM docker.n8n.io/n8nio/n8n:2.4.6
 
-# 2. Mudar para usuário root para instalar pacotes de sistema
+# Permite instalar pacotes
 USER root
 
-# 3. Instalar todas as dependências do sistema necessárias
-RUN apk add --no-cache \
+# Instalar dependências do sistema para Chromium/Puppeteer
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ttf-freefont \
+    chromium-driver \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
     udev \
     git \
     python3 \
-    py3-pip \
+    python3-pip \
     curl \
-    bind-tools \
-    && rm -rf /var/cache/apk/*
+    dnsutils \
+    && rm -rf /var/lib/apt/lists/*
 
-# 4. Instalar a biblioteca cliente do n8n para Python
-#    Usamos --break-system-packages para contornar a proteção PEP 668
-RUN pip3 install n8n --break-system-packages
+# Defina o caminho do Chromium para Puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# 5. Configurar o Git para usar HTTPS em vez de SSH
-RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
-RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-
-# 6. Instalar o Puppeteer e o node da comunidade n8n
-RUN npm install -g puppeteer@latest
-RUN npm install -g n8n-nodes-puppeteer@latest
-
-# 7. Configure as variáveis de ambiente para o Puppeteer usar o Chromium do sistema
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
-# 8. Retornar ao usuário padrão 'node' para segurança e operação normal
+# Voltar para o usuário padrão do n8n
 USER node
