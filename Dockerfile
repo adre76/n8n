@@ -1,5 +1,5 @@
-# 1. Imagem oficial do n8n (2.0.2 - Latest em 15/12/2025)
-FROM docker.n8n.io/n8nio/n8n:2.0.2
+# 1. Imagem oficial do n8n (2.4.6 - Latest em 23/01/2026)
+FROM docker.n8n.io/n8nio/n8n:2.4.6
 
 # 2. Mudar para usuário root para instalar pacotes de sistema
 USER root
