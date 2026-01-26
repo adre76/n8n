@@ -1,11 +1,11 @@
-# 1. Imagem oficial do n8n (2.4.6 - Latest em 23/01/2026)
-FROM docker.n8n.io/n8nio/n8n:2.4.6-arm64
+# Base oficial Node com Alpine (multi-arch, inclui ARM64)
+FROM node:22-alpine
 
-# 2. Mudar para usuário root para instalar pacotes de sistema
+# Usar root para instalar dependências
 USER root
 
-# 3. Instalar todas as dependências do sistema necessárias
-RUN apk add --no-cache \
+# Instalar dependências necessárias para Chromium + Puppeteer + scraping
+RUN apk update && apk add --no-cache \
     chromium \
     nss \
     freetype \
@@ -17,23 +17,25 @@ RUN apk add --no-cache \
     py3-pip \
     curl \
     bind-tools \
+    ca-certificates \
+    bash \
     && rm -rf /var/cache/apk/*
 
-# 4. Instalar a biblioteca cliente do n8n para Python
-#    Usamos --break-system-packages para contornar a proteção PEP 668
-RUN pip3 install n8n --break-system-packages
+# Variável obrigatória para o Puppeteer encontrar o Chromium do sistema
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
-# 5. Configurar o Git para usar HTTPS em vez de SSH
-RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
-RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+# Instalar exatamente a versão do n8n desejada
+RUN npm install -g n8n@2.4.6
 
-# 6. Instalar o Puppeteer e o node da comunidade n8n
-RUN npm install -g puppeteer@latest
-RUN npm install -g n8n-nodes-puppeteer@latest
+# Criar diretório de dados do n8n e ajustar permissões
+RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node
 
-# 7. Configure as variáveis de ambiente para o Puppeteer usar o Chromium do sistema
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
-# 8. Retornar ao usuário padrão 'node' para segurança e operação normal
+# Rodar como usuário não-root (boa prática para Kubernetes)
 USER node
+
+# Porta padrão
+EXPOSE 5678
+
+# Comando padrão
+CMD ["n8n"]
