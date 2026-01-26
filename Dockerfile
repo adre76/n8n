@@ -5,9 +5,7 @@ FROM docker.n8n.io/n8nio/n8n:2.4.6
 USER root
 
 # 3. Instala apk-tools (removido da imagem base a partir do n8n 2.1.0)
-RUN wget -q https://dl-cdn.alpinelinux.org/alpine/v3.22/main/x86_64/apk-tools-2.14.8-r0.apk && \
-    tar -xzf apk-tools-2.14.8-r0.apk -C / && \
-    rm apk-tools-2.14.8-r0.apk
+RUN apk update && apk add --no-cache apk-tools
 
 # 4. Instalar todas as dependências do sistema necessárias
 RUN apk add --no-cache \
