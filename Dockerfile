@@ -5,6 +5,7 @@ FROM node:22-alpine
 USER root
 
 # Instalar dependências necessárias para Chromium + Puppeteer + scraping
+# ADICIONEI: gcompat, libstdc++, mesa-gl (necessários para tentar rodar OCP/build123d no Alpine)
 RUN apk update && apk add --no-cache \
     chromium \
     nss \
@@ -19,6 +20,10 @@ RUN apk update && apk add --no-cache \
     bind-tools \
     ca-certificates \
     bash \
+    gcompat \
+    libstdc++ \
+    mesa-gl \
+    mesa-egl \
     && rm -rf /var/cache/apk/*
 
 # Variável obrigatória para o Puppeteer encontrar o Chromium do sistema
@@ -26,7 +31,8 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 # Instalar a biblioteca build123d para Python
-RUN pip install build123d
+# ALTERAÇÃO CRÍTICA: Adicionado --break-system-packages para permitir instalação no Alpine
+RUN pip install build123d --break-system-packages
 
 # Instalar exatamente a versão do n8n desejada
 RUN npm install -g n8n@2.6.3
