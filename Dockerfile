@@ -1,50 +1,47 @@
-# Base oficial Node com Alpine (multi-arch, inclui ARM64)
-FROM node:22-alpine
+# 1. MUDANÇA OBRIGATÓRIA: Usar Debian (bookworm) em vez de Alpine.
+# O Alpine não roda o motor CAD (OCP) necessário para o build123d.
+FROM node:22-bookworm
 
-# Usar root para instalar dependências
 USER root
 
-# Instalar dependências necessárias para Chromium + Puppeteer + scraping
-# ADICIONEI: gcompat, libstdc++, mesa-gl (necessários para tentar rodar OCP/build123d no Alpine)
-RUN apk update && apk add --no-cache \
+# 2. Instalar Chromium, Python e dependências do sistema
+# No Debian, os nomes dos pacotes são diferentes do Alpine.
+# Adicionamos libgl1-mesa-glx e libglib2.0-0 para o suporte 3D.
+RUN apt-get update && apt-get install -y \
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ttf-freefont \
-    udev \
     git \
     python3 \
-    py3-pip \
+    python3-pip \
+    python3-venv \
     curl \
-    bind-tools \
-    ca-certificates \
-    bash \
-    gcompat \
-    libstdc++ \
-    mesa-gl \
-    mesa-egl \
-    && rm -rf /var/cache/apk/*
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Variável obrigatória para o Puppeteer encontrar o Chromium do sistema
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# 3. Configurar Variáveis do Puppeteer
+# No Debian, o chromium é instalado em /usr/bin/chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
-# Instalar a biblioteca build123d para Python
-# ALTERAÇÃO CRÍTICA: Adicionado --break-system-packages para permitir instalação no Alpine
-RUN pip install build123d --break-system-packages
+# 4. Configurar Ambiente Virtual Python (Obrigatório no Debian 12+)
+# Isso evita erros de "externally managed environment" sem precisar de hacks
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Instalar exatamente a versão do n8n desejada
+# 5. Instalar build123d
+# Agora vai funcionar porque o Debian é compatível com os binários do OCP
+RUN pip install --upgrade pip && \
+    pip install build123d
+
+# 6. Instalar n8n
 RUN npm install -g n8n@2.6.3
 
-# Criar diretório de dados do n8n e ajustar permissões
+# 7. Configurar usuário e permissões
 RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node
 
-# Rodar como usuário não-root (boa prática para Kubernetes)
 USER node
 
-# Porta padrão
 EXPOSE 5678
 
-# Comando padrão
 CMD ["n8n"]
