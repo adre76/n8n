@@ -25,8 +25,11 @@ RUN apk update && apk add --no-cache \
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
+# Instalar a biblioteca build123d para Python
+RUN pip install build123d
+
 # Instalar exatamente a versão do n8n desejada
-RUN npm install -g n8n@2.4.6
+RUN npm install -g n8n@2.6.3
 
 # Criar diretório de dados do n8n e ajustar permissões
 RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node
