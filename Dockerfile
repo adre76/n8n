@@ -35,7 +35,7 @@ RUN pip install --upgrade pip && \
     pip install build123d
 
 # 6. Instalar n8n
-RUN npm install -g n8n@2.6.3
+RUN npm install -g n8n@2.7.4
 
 # 7. Configurar usuário e permissões
 RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node
