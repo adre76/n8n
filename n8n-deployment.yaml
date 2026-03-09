@@ -17,10 +17,12 @@ spec:
     spec:
       containers:
         - name: n8n
-          image: andrepereira21/n8n-puppeteer:2.7.4
+          image: andrepereira21/n8n-puppeteer:2.10.4
           ports:
             - containerPort: 5678
           env:
+            - name: N8N_BLOCK_SVC_REGISTRATION_EMAIL
+              value: "true"
             - name: NODE_OPTIONS
               value: "--dns-result-order=ipv4first"
             - name: N8N_PROXY_HOPS
