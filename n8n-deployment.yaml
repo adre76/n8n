@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: n8n
-          image: andrepereira21/n8n-puppeteer:2.10.4
+          image: andrepereira21/n8n-puppeteer:2.21.7
           ports:
             - containerPort: 5678
           env:
@@ -73,7 +73,7 @@ spec:
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
-        
+
         - name: task-runner-python
           image: n8nio/runners:2.0.2
           imagePullPolicy: IfNotPresent

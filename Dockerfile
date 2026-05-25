@@ -30,12 +30,11 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # 5. Instalar build123d
-# Agora vai funcionar porque o Debian é compatível com os binários do OCP
 RUN pip install --upgrade pip && \
     pip install build123d
 
 # 6. Instalar n8n
-RUN npm install -g n8n@2.10.4
+RUN npm install -g n8n@2.21.7
 
 # 7. Configurar usuário e permissões
 RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node
