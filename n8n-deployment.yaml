@@ -75,7 +75,7 @@ spec:
               mountPath: /home/node/.n8n
 
         - name: task-runner-python
-          image: n8nio/runners:2.0.2
+          image: n8nio/runners:2.21.7
           imagePullPolicy: IfNotPresent
           env:
             - name: N8N_TASK_BROKER_URL
